@@ -13,6 +13,7 @@ from natsort import natsorted
 
 # shut off settingwithcopy warning
 pd.options.mode.chained_assignment = None  # default='warn'
+
 """
 Purpose: Pipeline for processing files generated from MaxQuant.
 
@@ -30,13 +31,12 @@ Files that are generated:
 <prefix>_counts.xlsx: excel file of replicate counts
 <prefix>_exp_stats.xlsx: excel file with averages, std dev, and counts for experimental group
 <prefix>_all_norm.xlsx.xlsx: excel file with normalized values for each replicate for both control and experimental groups
+<prefix>_all_norm_rand.xlsx.xlsx: same as above but with random imputation for 0's
 
 """
 __author__ = "Sara Jones"
 __email__ = "jonessarae@gmail.com"
 __doc__ = "Pipeline that processes files from MaxQuant."
-__date__ = "11/13/19"
-
 
 def filter_maxquant_col(filename):
     """
@@ -47,7 +47,7 @@ def filter_maxquant_col(filename):
     Returns: filtered_cols_df (dataframe)
     """
     # read in proteinGroups.txt
-    df = pd.read_csv(filename, sep='\t', low_memory=False)
+    df = pd.read_csv(filename, sep="\t", low_memory=False)
 
     # list of non-intensity columns to keep
     col_list = ["Majority protein IDs", "Protein names", "Gene names",
@@ -232,8 +232,13 @@ def get_common_isotope(sample_dict):
     # look for keys with same values
     results = [values for key, values in rev_dict.items() if len(values) > 1]
 
+    # check there are two keys with matching values
+    if len(results) == 0:
+        print("Meta file contains an error. Check that there is a shared timepoint between mixes.")
+        sys.exit(0)
+
     # check there is just one result with 2 keys representing two mixes
-    if len(results) != 1 and len(results[0]) !=2:
+    if len(results[0]) !=2:
         print("Meta file contains an error. Check that there is only one timepoint shared between mixes.")
         sys.exit(0) # exit program
 
@@ -255,31 +260,6 @@ def get_average(df):
     Arguments: df (dataframe)
     Returns: avg_df (dataframe)
     """
-    # create average dataframe with protein id/name info only
-    avg_df = df[df.columns[0:4]].copy()
-
-    # intensity values start at 11
-    for i in range(11,len(df.columns))[::3]:
-        # create new column name
-        col_name = df.columns[i].split(" ")
-        isotope = col_name[1]
-        stim_mix= col_name[2].split("_")[0][0:3]
-        new_col_name = stim_mix + "_" + isotope # example: LM1_L
-        # create new column of average
-        avg_df[new_col_name] = df.iloc[:,i:i+3].mean(axis=1)
-
-    return avg_df
-
-def get_norm_average(df):
-    """
-    This function takes in a dataframe and outputs the averages of three replicates
-    in a new dataframe. Note that if the dataframe has NaNs, they will not be
-    part of the average.
-
-    Arguments: df (dataframe)
-    Returns: avg_df (dataframe)
-    """
-
     df[df == 0] = np.nan # set 0's to NaNs
 
     # create average dataframe with protein id/name info only
@@ -297,7 +277,6 @@ def get_norm_average(df):
 
     return avg_df
 
-
 def get_variance(df):
     """
     This function takes in a dataframe and outputs the standard deviations of
@@ -307,18 +286,17 @@ def get_variance(df):
     Arguments: df (dataframe)
     Returns: sd_df (dataframe)
     """
+    df[df == 0] = np.nan # set 0's to NaNs
+
     # create standard deviation dataframe with protein id/name info only
     sd_df = df[df.columns[0:4]].copy()
 
-    # intensity values start at 11
-    for i in range(11,len(df.columns))[::3]:
+    # intensity values start at 4
+    for i in range(4,len(df.columns))[::3]:
         # create new column name
-        col_name = df.columns[i].split(" ")
-        isotope = col_name[1]
-        stim_mix= col_name[2].split("_")[0][0:3]
-        new_col_name = stim_mix + "_" + isotope # example: LM1_L
+        col_name = df.columns[i][:-2] # example: LM_0
         # create new column of standard deviation
-        sd_df[new_col_name] = df.iloc[:,i:i+3].std(axis=1)
+        sd_df[col_name] = df.iloc[:,i:i+3].std(axis=1)
 
     # replace NaNs with 0's
     sd_df[sd_df.columns[4:]] = sd_df[sd_df.columns[4:]].replace({np.nan:0})
@@ -338,69 +316,37 @@ def get_factors(isotope, df):
     # create factors dataframe with protein id/name info only
     factors_df = df[df.columns[0:4]].copy()
 
-    # for averaged dataframe
-    if not "Intensity" in list(df.columns)[4]:
-        # create dataframe with just the intensity values of common isotope
-        isotope_df = df.filter(regex='.*(!?_{})'.format(isotope))
-        # list of column names
-        col_list = isotope_df.columns
-        regex = r'([^\s])M([0-9])[^\s]'
-        # group mixes of same stimulant together
-        key = [0,1]
-        # list of sorted column names
-        sorted_col_list = sorted(col_list, key=lambda name: tuple(re.findall(regex,name)[0][i] for i in key))
-        # dataframe with column names sorted
-        isotope_df = isotope_df[sorted_col_list]
-        pre_num = len(isotope_df.columns) # number of columns
+    # create dataframe with just the intensity values of common isotope
+    isotope_df = df.filter(regex='Intensity\s({}).*'.format(isotope))
+    # list of column names
+    col_list = isotope_df.columns
+    regex = r'Intensity\s[^\s]\s([^\s])[^\s]([0-9])([^\s])_([^\s])'
+    # group mixes of same stimulant/group/replicate together
+    key = [0,2,3,1]
+    # list of sorted column names
+    sorted_col_list = sorted(col_list, key=lambda name: tuple(re.findall(regex,name)[0][i] for i in key))
+    # dataframe with column names sorted
+    isotope_df = isotope_df[sorted_col_list]
+    pre_num = len(isotope_df.columns) # number of columns
+    for i in range(0, pre_num)[::2]:
+        # create new column name
+        col = isotope_df.columns[i].split(" ")
+        stim_mix = col[2].split("_")[0][0]
+        group = col[2].split("_")[0][3]
+        rep = col[2].split("_")[1]
+        new_col_name = stim_mix + group + "_" + rep + "_avg" # example: LM_A_avg
         # get average of two mixes
-        for i in range(0, pre_num)[::2]:
-            # create new column name
-            stim = isotope_df.columns[i][0]
-            new_col_name = stim + "_avg" # example: L_avg
-            isotope_df[new_col_name] = isotope_df.iloc[:,i:i+2].mean(axis=1)
-        post_num = len(isotope_df.columns) # number of columns
-        # get the factors by dividing combined average by each mix's average
-        for i in range(pre_num, post_num):
-            col_name = isotope_df.columns[i]
-            mix1 = col_name.split("_")[0] + "M1_L"
-            mix2 = col_name.split("_")[0] + "M2_L"
-            mix1_col = col_name.split("_")[0] + "M1_factor"
-            mix2_col = col_name.split("_")[0] + "M2_factor"
-            isotope_df[mix1_col]=isotope_df.iloc[:,i]/isotope_df[mix1]
-            isotope_df[mix2_col]=isotope_df.iloc[:,i]/isotope_df[mix2]
-    # for non-averaged dataframe
-    else:
-        # create dataframe with just the intensity values of common isotope
-        isotope_df = df.filter(regex='Intensity\s({}).*'.format(isotope))
-        # list of column names
-        col_list = isotope_df.columns
-        regex = r'Intensity\s[^\s]\s([^\s])[^\s]([0-9])([^\s])_([^\s])'
-        # group mixes of same stimulant/group/replicate together
-        key = [0,2,3,1]
-        # list of sorted column names
-        sorted_col_list = sorted(col_list, key=lambda name: tuple(re.findall(regex,name)[0][i] for i in key))
-        # dataframe with column names sorted
-        isotope_df = isotope_df[sorted_col_list]
-        pre_num = len(isotope_df.columns) # number of columns
-        for i in range(0, pre_num)[::2]:
-            # create new column name
-            col = isotope_df.columns[i].split(" ")
-            stim_mix = col[2].split("_")[0][0]
-            group = col[2].split("_")[0][3]
-            rep = col[2].split("_")[1]
-            new_col_name = stim_mix + group + "_" + rep + "_avg" # example: LM_A_avg
-            # get average of two mixes
-            isotope_df[new_col_name] = isotope_df.iloc[:,i:i+2].mean(axis=1)
-        post_num = len(isotope_df.columns) # number of column
-        # get the factors by dividing combined average by each mix's average
-        for i in range(pre_num, post_num):
-            col_name = isotope_df.columns[i]
-            mix1 = "Intensity " + isotope + " " + col_name[0] + "M1" + col_name[1] + "_" + col_name.split("_")[1]
-            mix2 = "Intensity " + isotope + " " + col_name[0] + "M2" + col_name[1] + "_" + col_name.split("_")[1]
-            mix1_col = col_name[0] + "M1" + col_name[1] + "_" + col_name[3] + "_factor"
-            mix2_col = col_name[0] + "M2" + col_name[1] + "_" + col_name[3] + "_factor"
-            isotope_df[mix1_col] = isotope_df.iloc[:,i]/isotope_df[mix1]
-            isotope_df[mix2_col] = isotope_df.iloc[:,i]/isotope_df[mix2]
+        isotope_df[new_col_name] = isotope_df.iloc[:,i:i+2].mean(axis=1)
+    post_num = len(isotope_df.columns) # number of column
+    # get the factors by dividing combined average by each mix's average
+    for i in range(pre_num, post_num):
+        col_name = isotope_df.columns[i]
+        mix1 = "Intensity " + isotope + " " + col_name[0] + "M1" + col_name[1] + "_" + col_name.split("_")[1]
+        mix2 = "Intensity " + isotope + " " + col_name[0] + "M2" + col_name[1] + "_" + col_name.split("_")[1]
+        mix1_col = col_name[0] + "M1" + col_name[1] + "_" + col_name[3] + "_factor"
+        mix2_col = col_name[0] + "M2" + col_name[1] + "_" + col_name[3] + "_factor"
+        isotope_df[mix1_col] = isotope_df.iloc[:,i]/isotope_df[mix1]
+        isotope_df[mix2_col] = isotope_df.iloc[:,i]/isotope_df[mix2]
 
     # convert any NaNs to 1 for the factors
     isotope_df[isotope_df.columns[post_num:]] = isotope_df[isotope_df.columns[post_num:]].replace({np.nan:1})
@@ -426,27 +372,15 @@ def get_norm_values(df, f_df):
     factors = f_df[f_df.filter(regex='.*(_factor)').columns] # get factors only
     new_df = df.join(factors) # add factors to dataframe
 
-    if not "Intensity" in list(df.columns)[4]:
-        # normalize averages by multiplying averages by its factors
-        for i in range(num_cols, len(new_df.columns)):
-            col_name = new_df.columns[i]
-            repH = col_name.split("_")[0] + "_H"
-            repM = col_name.split("_")[0] + "_M"
-            repL = col_name.split("_")[0] + "_L"
-            new_df[repH] = new_df.iloc[:,i] * new_df[repH]
-            new_df[repM] = new_df.iloc[:,i] * new_df[repM]
-            new_df[repL] = new_df.iloc[:,i] * new_df[repL]
-    else:
-        # normalize replicates by multiplying replicates by its factors
-        for i in range(num_cols, len(new_df.columns)):
-            col_name = new_df.columns[i]
-            repH = "Intensity H " + col_name.split("_")[0] + "_" + col_name.split("_")[1]
-            repM = "Intensity M " + col_name.split("_")[0] + "_" + col_name.split("_")[1]
-            repL = "Intensity L " + col_name.split("_")[0] + "_" + col_name.split("_")[1]
-            new_df[repH] = new_df.iloc[:,i] * new_df[repH]
-            new_df[repM] = new_df.iloc[:,i] * new_df[repM]
-            new_df[repL] = new_df.iloc[:,i] * new_df[repL]
-
+    # normalize replicates by multiplying replicates by its factors
+    for i in range(num_cols, len(new_df.columns)):
+        col_name = new_df.columns[i]
+        repH = "Intensity H " + col_name.split("_")[0] + "_" + col_name.split("_")[1]
+        repM = "Intensity M " + col_name.split("_")[0] + "_" + col_name.split("_")[1]
+        repL = "Intensity L " + col_name.split("_")[0] + "_" + col_name.split("_")[1]
+        new_df[repH] = new_df.iloc[:,i] * new_df[repH]
+        new_df[repM] = new_df.iloc[:,i] * new_df[repM]
+        new_df[repL] = new_df.iloc[:,i] * new_df[repL]
 
     # drop factors
     new_df.drop(list(new_df.filter(regex = '_factor')), axis = 1, inplace = True)
@@ -455,7 +389,6 @@ def get_norm_values(df, f_df):
     new_df = new_df.replace({np.nan:0})
 
     return new_df
-
 
 def get_max(isotope, df):
     """
@@ -519,7 +452,7 @@ def rename_columns(sample_dict, df):
                df (dataframe)
     Returns: df (dataframe)
     """
-    # get names of intensity columns
+     # get names of intensity columns
     column_names = list(df.filter(regex="_").columns)
     # create new dictionary
     new_d = {}
@@ -548,6 +481,20 @@ def rename_columns(sample_dict, df):
 
     return df
 
+def random_impute(arr):
+    """
+    This function takes in an array and imputes a random number for any 0's.
+
+    Argument: arr (array)
+    Returns: arr (array)
+    """
+    # iterate through array to assign a random number from 500 to 1000 if 0
+    for i in range(len(arr)):
+        if arr[i] == 0:
+            arr[i] = np.random.randint(low=500,high=1000)
+
+    return arr
+
 def main(args):
 
     # get path to control and experiment proteinGroups.txt files
@@ -570,13 +517,24 @@ def main(args):
     print("Number of protein hits for experiment group is {}.".format(exp_df.shape[0]))
     print("Number of protein hits for control group is {}.".format(con_df.shape[0]))
 
+    # check that the right files were selected
+    if con_df.columns[14].split(" ")[2].split("_")[0][3] != "C":
+        print("The wrong proteinGroups.txt file was selected for the control group.")
+        print("Please check the path to the correct file.")
+        sys.exit(0) # exit program
+
+    if exp_df.columns[14].split(" ")[2].split("_")[0][3] == "C":
+        print("The wrong proteinGroups.txt file was selected for the experimental group.")
+        print("Please check the path to the correct file.")
+        sys.exit(0) # exit program
+
     # remove unwanted rows
     con_df = filter_maxquant_row(con_df)
     exp_df = filter_maxquant_row(exp_df)
     print("Number of protein hits for experiment group is {} after removing unwanted rows.".format(exp_df.shape[0]))
     print("Number of protein hits for control group is {} after removing unwanted rows.".format(con_df.shape[0]))
 
-    # merge dataframes - left join in experiment dataframe
+    # merge dataframes - left join on experiment dataframe
     merged_df = pd.merge(exp_df, con_df, how="left", on="Majority protein IDs")
 
     # delete unused dataframes
@@ -619,7 +577,7 @@ def main(args):
 
     # get counts for experiment group only and which meets criteria
     exp_count_df = merged_count_df[merged_count_df["sum"] != 0].reset_index().drop("index", axis = 1)
-    exp_count_df = exp_count_df[exp_count_df.columns[0:4]].join(exp_count_df[exp_count_df.filter(regex='.*(M_).*').columns])
+    exp_count_df = exp_count_df[exp_count_df.columns[0:4]].join(exp_count_df[exp_count_df.filter(regex='.*[^C\d]_.*').columns])
     exp_count_df.columns = exp_count_df.columns.str.replace("M_", "_") # remove extra letter
     exp_count_df = get_max(common_isotope, exp_count_df)
     exp_count_df = rename_columns(samples, exp_count_df)
@@ -628,26 +586,37 @@ def main(args):
     del merged_count_df
     del merged_df
 
-    # create dataframe of only experimental group intensities
-    exp_only_df = filtered_df.filter(regex='^((?!C_).)*$').drop("index", axis=1)
-    exp_only_df[exp_only_df == 0] = np.nan # set 0's to NaNs
-
     # create dataframe of control and experimental group intensities
     both_df = filtered_df[filtered_df.columns[:5]].join(filtered_df[filtered_df.columns[12:]]).drop("index", axis=1)
     both_df[both_df == 0] = np.nan # set 0's to NaNs
 
-    # create dataframe of pre-normalized averages
-    exp_avg_df = get_average(exp_only_df)
-    # create dataframe of pre-normalized standard deviations
-    exp_sd_df = get_variance(exp_only_df)
-    exp_sd_df = get_max(common_isotope, exp_sd_df)
-    exp_sd_df = rename_columns(samples, exp_sd_df)
-    # create dataframe for factors
-    exp_factors_df = get_factors(common_isotope, exp_avg_df)
-    # create dataframe of normalized averages
-    exp_norm_avg_df = get_norm_values(exp_avg_df, exp_factors_df)
-    exp_norm_avg_df = get_max(common_isotope, exp_norm_avg_df)
-    exp_norm_avg_df = rename_columns(samples, exp_norm_avg_df)
+    # create dataframe for normalizing replicates
+    both_factors_df = get_factors(common_isotope, both_df)
+    norm_both_df = get_norm_values(both_df, both_factors_df)
+    norm_both_df = get_max(common_isotope, norm_both_df)
+    norm_both_df = rename_columns(samples, norm_both_df)
+
+    # get averages of normalized replicates
+    norm_avg_df = get_average(norm_both_df)
+
+    # save as excel files
+    if args.prefix:
+        norm_both_df.to_excel(args.prefix + "_all_norm.xlsx", index=False, na_rep=0)
+        norm_avg_df.to_excel(args.prefix + "_norm_avg.xlsx", index=False)
+    else:
+        norm_both_df.to_excel("all_norm.xlsx", index=False)
+        norm_avg_df.to_excel("norm_avg.xlsx", index=False)
+
+    # get averages from only experimental group
+    exp_norm_avg_df = norm_avg_df[norm_avg_df.columns[0:4]].join(norm_avg_df[norm_avg_df.filter(regex='.*[^C]_.*').columns])
+    exp_norm_avg_df.columns = exp_norm_avg_df.columns.str.replace("M_", "_") # remove extra letter
+
+    # get standard deviations of normalized replicates
+    norm_std_df = get_variance(norm_both_df)
+
+    # get standard deviations of just the experimental group
+    exp_norm_std_df = norm_std_df[norm_std_df.columns[0:4]].join(norm_std_df[norm_std_df.filter(regex='.*[^C]_.*').columns])
+    exp_norm_std_df.columns = exp_norm_std_df.columns.str.replace("M_", "_") # remove extra letter
 
     # save experimental group stats to file
     if args.prefix:
@@ -656,29 +625,28 @@ def main(args):
         writer = pd.ExcelWriter('_exp_stats.xlsx', engine='xlsxwriter')
 
     # write each dataframe to a different worksheet.
-    exp_avg_df = exp_avg_df.replace({np.nan:0}) # replace NaNs with 0s
-    exp_avg_df.to_excel(writer, sheet_name='pre-Mean', index=False)
-    exp_factors_df.to_excel(writer, sheet_name='Factors', index=False)
-    exp_norm_avg_df.to_excel(writer, sheet_name='Mean', index=False)
-    exp_sd_df.to_excel(writer, sheet_name='Std Dev', index=False)
-    exp_count_df.to_excel(writer, sheet_name='Count', index=False)
+    exp_norm_avg_df.to_excel(writer, sheet_name="Mean", index=False)
+    exp_norm_std_df.to_excel(writer, sheet_name="Std Dev", index=False)
+    exp_count_df.to_excel(writer, sheet_name="Count", index=False)
 
     # close the Pandas Excel writer and output the Excel file.
     writer.save()
 
-    # create dataframe for normalizing replicates
-    both_factors_df = get_factors(common_isotope, both_df)
-    norm_both_df = get_norm_values(both_df, both_factors_df)
-    norm_both_df = get_max(common_isotope, norm_both_df)
-    norm_both_df = rename_columns(samples, norm_both_df)
+    np.random.seed(0) # to get same random numbers every time when running the program
+
+    norm_both_df = norm_both_df.replace({np.nan:0}) # replace NaNs with 0's
+
+    # iterate through each column and row to replace 0's with random number
+    for i in range(4,len(norm_both_df.columns[4:])):
+        vals = norm_both_df[norm_both_df.columns[i]].values
+        new_vals = random_impute(vals)
+        norm_both_df[norm_both_df.columns[i]] = new_vals
+
     # save as excel file
     if args.prefix:
-        norm_both_df.to_excel(args.prefix + "_all_norm.xlsx", index=False)
+        norm_both_df.to_excel(args.prefix + "_all_norm_rand.xlsx", index=False)
     else:
-        norm_both_df.to_excel("all_norm.xlsx", index=False)
-
-    norm_avg_df = get_norm_average(norm_both_df)
-    norm_avg_df.to_excel(args.prefix + "_norm_avg.xlsx", index=False)
+        norm_both_df.to_excel("all_norm_rand.xlsx", index=False)
 
 
 if __name__ == "__main__":
@@ -689,7 +657,7 @@ if __name__ == "__main__":
     p.add_argument("-exp", help="path to experiment proteinGroups.txt file", required=True)
     p.add_argument("-con", help="path to control proteinGroups.txt file", required=True)
     p.add_argument("--prefix", help="prefix to use for naming output files")
-    p.add_argument("--meta", help="tab-delimited file listing timepoints to isotope/mix")
+    p.add_argument("--meta", help="tab-delimited file listing timepoints to isotope/mix", required=True)
 
     # parse arguments
     args = p.parse_args()
