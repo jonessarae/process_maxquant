@@ -64,7 +64,7 @@ There must be one timepoint that is shared between the two mixes. In this case, 
 * *counts.xlsx*: excel file of replicate counts
 * *exp_stats.xlsx*: excel file with mean, standard deviation, and counts for each timepoint in experimental group
 * *all_norm.xlsx.xlsx*: excel file with normalized values for each replicate for both control and experimental groups
-* *all_norm_rand.xlsx*.xlsx: same as above but with random imputation (range 500-1000) applied to 0's
+* *all_norm_rand.xlsx*: same as above but with random imputation (range 500-1000) applied to 0's
 * *norm_avg.xlsx.xlsx*: excel file with normalized averages for both control and experimental groups
 
 ## Workflow
