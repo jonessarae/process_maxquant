@@ -6,14 +6,16 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/triple_silac.PNG">
 
-* Software
-* How to run program
-* How to prepare meta file
-* Output files
-* Workflow
-* Template for Prism {:Template for Prism}
+## Table of contents
 
-## Software
+   * [Installation](#installation)
+   * [Usage](#usage)
+      * [How to prepare meta file](#how to prepare meta file)
+   * [Output](#output)
+   * [Prism template](#Prism template)
+   
+
+## Installation
 
 You will need Python 3 already on your computer and the following packages installed:
 
@@ -35,7 +37,7 @@ Next, download the python script:
 git clone https://github.com/jonessarae/process_maxquant.git
 </pre>
 
-## How to run program
+## Usage
 
 <pre>
 python process_maxquant.py -exp path/to/file -con path/to/file --meta path/to/file [options]
@@ -73,7 +75,7 @@ There must be one timepoint that is shared between the two mixes, M1 and M2. In 
 
 An example, *info.txt*, is provided. 
 
-## Output files
+## Output
 
 * *raw_filtered.xlsx*: filtered, merged excel file with raw intensity values from control and experimental groups
 * *counts.xlsx*: excel file of replicate counts
@@ -90,7 +92,7 @@ Shown in orange are all the files generated from the script, and in purple are t
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/diagram.png">
 
-## Template for Prism
+## Prism template
 
 Included is a text file called *prism_output_template.txt* that contains excel formulas specific for the output file, *exp_stats.xlsx*. 
 
