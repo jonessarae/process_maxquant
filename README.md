@@ -31,7 +31,7 @@ M1_H	60
 M2_H	120
 </pre>
 
-The first column lists the isotope/mix, and the second column are the associated timepoints.
+The first column lists the isotope/mix and the second column the associated timepoints.
 
 
 ## Diagram
