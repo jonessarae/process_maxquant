@@ -28,15 +28,16 @@ Parameters:
 The meta file must be in the following format:
 
 <pre>
-M1_M  0	
-M1_L	10
-M2_L	10
-M2_M	30
-M1_H	60
-M2_H	120
+M1_M    0	
+M1_L    10
+M2_L    10
+M2_M    30
+M1_H    60
+M2_H    120
 </pre>
 
 The first column lists the isotope/mix and the second column the associated timepoints. 
+
 The columns are separated by a TAB. 
 
 ## Other files
