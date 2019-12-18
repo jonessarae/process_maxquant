@@ -4,7 +4,7 @@ Python script for processing MaxQuant files for downstream analysis.
 The script is specific for triple SILAC quantitative proteomic analysis involving two mixes as shown in the diagram below.
 
 
-<img src="https://github.com/jonessarae/process_maxquant/blob/master/triple_silac.PNG">
+<img src="https://github.com/jonessarae/process_maxquant/blob/media/triple_silac.PNG">
 
 ## Software
 
@@ -73,7 +73,7 @@ This workflow diagram shows the major steps in the python script.
 
 Shown in orange are all the files generated from the script, and in purple are the downstream software programs that will utilize those files.
 
-<img src="https://github.com/jonessarae/process_maxquant/blob/master/diagram.png">
+<img src="https://github.com/jonessarae/process_maxquant/blob/media/diagram.png">
 
 ## Template for Prism
 
@@ -87,5 +87,5 @@ The table generated can then be used as input for Prism.
 
 Example:
 
-<img src="https://github.com/jonessarae/process_maxquant/blob/master/prism_table_example.PNG">
+<img src="https://github.com/jonessarae/process_maxquant/blob/media/prism_table_example.PNG">
 
