@@ -6,6 +6,8 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/triple_silac.PNG">
 
+{:toc}
+
 ## Software
 
 You will need Python 3 already on your computer and the following packages installed:
