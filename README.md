@@ -62,7 +62,9 @@ The first column lists the isotope/mix and the second column the associated time
 
 The columns are separated by a TAB. 
 
-There must be one timepoint that is shared between the two mixes. In this case, it is M1_L and M2_L.
+There must be one timepoint that is shared between the two mixes, M1 and M2. In this case, it is M1_L and M2_L.
+
+An example, *info.txt*, is provided. 
 
 ## Files generated
 
