@@ -65,5 +65,7 @@ Shown in orange are all the files generated from the script, and in purple are t
 
 Included is a text file called *prism_output_template.txt* that contains excel formulas specific for the output file, *exp_stats.xlsx*. The text file can be copied to a new sheet in *exp_stats.xlsx*. It will then populate with values based on the protein ID (cell B1). The table generated can then be used as input for Prism. 
 
+Example:
+
 <img src="https://github.com/jonessarae/process_maxquant/blob/master/prism_table_example.PNG">
 
