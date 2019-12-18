@@ -8,7 +8,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 ## Software
 
-You will need Python and the following packages installed:
+You will need Python 3 and the following packages installed:
 
 * numpy
 * pandas
