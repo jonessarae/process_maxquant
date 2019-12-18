@@ -11,8 +11,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 * How to prepare meta file
 * Output files
 * Workflow
-* Template for Prism
-{:toc}
+* Template for Prism {:Template for Prism}
 
 ## Software
 
