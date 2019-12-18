@@ -6,7 +6,12 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/triple_silac.PNG">
 
-* TOC
+* Software
+* How to run program
+* How to prepare meta file
+* Output files
+* Workflow
+* Template for Prism
 {:toc}
 
 ## Software
@@ -31,7 +36,7 @@ Next, download the python script:
 git clone https://github.com/jonessarae/process_maxquant.git
 </pre>
 
-## How to run the program
+## How to run program
 
 <pre>
 python process_maxquant.py -exp path/to/file -con path/to/file --meta path/to/file [options]
@@ -69,7 +74,7 @@ There must be one timepoint that is shared between the two mixes, M1 and M2. In 
 
 An example, *info.txt*, is provided. 
 
-## Files generated
+## Output files
 
 * *raw_filtered.xlsx*: filtered, merged excel file with raw intensity values from control and experimental groups
 * *counts.xlsx*: excel file of replicate counts
