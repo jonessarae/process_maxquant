@@ -30,9 +30,9 @@ Files that are generated:
 <prefix>_raw_filtered.xlsx: filtered, merged excel file with raw intensity values
 <prefix>_counts.xlsx: excel file of replicate counts
 <prefix>_exp_stats.xlsx: excel file with averages, std dev, and counts for experimental group
-<prefix>_all_norm.xlsx.xlsx: excel file with normalized values for each replicate for both control and experimental groups
-<prefix>_all_norm_rand.xlsx.xlsx: same as above but with random imputation for 0's
-<prefix>_norm_avg.xlsx.xlsx: excel file with normalized averages for both control and experimental groups
+<prefix>_all_norm.xlsx: excel file with normalized values for each replicate for both control and experimental groups
+<prefix>_all_norm_rand.xlsx: same as above but with random imputation for 0's
+<prefix>_norm_avg.xlsx: excel file with normalized averages for both control and experimental groups
 
 """
 __author__ = "Sara Jones"
