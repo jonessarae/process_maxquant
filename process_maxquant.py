@@ -653,7 +653,7 @@ if __name__ == "__main__":
 
     # create arguments
     p = argparse.ArgumentParser(description=__doc__, prog="process_maxquant.py",
-        usage="%(prog)s -exp <path/to/file> -con <path/to/file> [options]", add_help=True)
+        usage="%(prog)s -exp <path/to/file> -con <path/to/file> --meta <path/to/file> [options]", add_help=True)
     p.add_argument("-exp", help="path to experiment proteinGroups.txt file", required=True)
     p.add_argument("-con", help="path to control proteinGroups.txt file", required=True)
     p.add_argument("--prefix", help="prefix to use for naming output files")
