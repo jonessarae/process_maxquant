@@ -42,8 +42,13 @@ The columns are separated by a TAB.
 
 There must be one timepoint that is shared between the two mixes. In this case, it is M1_L and M2_L.
 
-## Other files
+## Files generated
 
+* raw_filtered.xlsx: filtered, merged excel file with raw intensity values from control and experimental groups
+* counts.xlsx: excel file of replicate counts
+* exp_stats.xlsx: excel file with mean, standard deviation, and counts for each timepoint in experimental group
+* all_norm.xlsx.xlsx: excel file with normalized values for each replicate for both control and experimental groups
+* all_norm_rand.xlsx.xlsx: same as above but with random imputation (range 500-1000) applied to 0's
 
 
 ## Workflow
