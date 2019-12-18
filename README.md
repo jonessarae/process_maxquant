@@ -37,6 +37,8 @@ Next, download the python script:
 git clone https://github.com/jonessarae/process_maxquant.git
 </pre>
 
+The script, *process_maxquant.py* is available in the folder *process_maxquant*.
+
 ## Usage
 
 <pre>
