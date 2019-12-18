@@ -6,6 +6,8 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/master/triple_silac.PNG">
 
+## Software
+
 ## How to run the program
 
 <pre>
@@ -53,6 +55,15 @@ There must be one timepoint that is shared between the two mixes. In this case, 
 
 ## Workflow
 
-This workflow diagram shows the major steps in the python script. In orange are all the files generated from the script, and in purple are the downstream software programs that will utilize those files.
+This workflow diagram shows the major steps in the python script. 
+
+Shown in orange are all the files generated from the script, and in purple are the downstream software programs that will utilize those files.
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/master/diagram.png">
+
+## Template for Prism
+
+Included is a text file called *prism_output_template.txt* that contains excel formulas specific for the output file, *exp_stats.xlsx*. The text file can be copied to a new sheet in *exp_stats.xlsx*. It will then populate with values based on the protein ID (cell B1). The table generated can then be used as input for Prism. 
+
+<img src="https://github.com/jonessarae/process_maxquant/blob/master/prism_table_example.PNG">
+
