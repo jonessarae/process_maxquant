@@ -8,6 +8,18 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 ## Software
 
+You will need Python and the following packages installed:
+
+* numpy
+* pandas
+* natsort
+
+These packages can be installed with the following command:
+
+<pre>
+pip install numpy pandas natsort
+</pre>
+
 ## How to run the program
 
 <pre>
