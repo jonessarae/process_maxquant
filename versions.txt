@@ -1,0 +1,6 @@
+Python 3.7.4
+
+pandas==0.25.1
+numpy==1.16.5
+natsort==6.2.0
+
