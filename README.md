@@ -15,10 +15,10 @@ python process_maxquant.py -con Mix12_Con/proteinGroups.txt -exp Mix12_Myd/prote
 </pre> 
 
 Parameters:
-* __-exp__: path to experiment proteinGroups.txt file, *required
-* __-con__: path to control proteinGroups.txt file, *required
+* __-exp__: path to experiment proteinGroups.txt file, *required*
+* __-con__: path to control proteinGroups.txt file, *required*
 * __--prefix__: prefix to use for naming output files
-* __--meta__: tab-delimited file listing timepoints to isotope/mix, *required
+* __--meta__: tab-delimited file listing timepoints to isotope/mix, *required*
 
 
 ## Diagram
