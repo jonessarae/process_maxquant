@@ -20,6 +20,8 @@ These packages can be installed with the following command:
 pip install numpy pandas natsort
 </pre>
 
+The versions used to create the python script are listed in the file *versions.txt*.
+
 ## How to run the program
 
 <pre>
