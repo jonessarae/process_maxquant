@@ -6,7 +6,7 @@ Python script for processing MaxQuant files for downstream analysis.
 ## How to use
 
 <pre>
-python process_maxquant.py -exp <path/to/file> -con <path/to/file> --meta <path/to/file> [options]
+python process_maxquant.py -exp path/to/file -con path/to/file --meta path/to/file [options]
 </pre> 
 
 Example:
