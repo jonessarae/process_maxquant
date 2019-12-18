@@ -8,7 +8,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 ## Software
 
-You will need Python 3 and the following packages installed:
+You will need Python 3 already on your computer and the following packages installed:
 
 * numpy
 * pandas
@@ -21,6 +21,12 @@ pip install numpy pandas natsort
 </pre>
 
 For reference, the versions used to create the python script are listed in the file *versions.txt*.
+
+Next, download the python script:
+
+<pre>
+git clone https://github.com/jonessarae/process_maxquant.git
+</pre>
 
 ## How to run the program
 
