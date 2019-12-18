@@ -10,7 +10,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
    * [Installation](#installation)
    * [Usage](#usage)
-      * ["How to prepare meta file]"(#"how to prepare meta file")
+      * [How to prepare meta file](#how-to-prepare-meta-file)
    * [Output](#output)
    * [Prism template](#Prism template)
    
