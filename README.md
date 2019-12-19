@@ -9,6 +9,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 ## Table of contents
 
    * [Installation](#installation)
+   * [Naming scheme for MaxQuant](#Naming-scheme-for-MaxQuant)
    * [Usage](#usage)
       * [How to prepare meta file](#how-to-prepare-meta-file)
    * [Output](#output)
