@@ -11,6 +11,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
    * [Installation](#installation)
    * [Naming scheme for MaxQuant](#Naming-scheme-for-MaxQuant)
    * [Usage](#usage)
+      * [Input](#Input)
       * [How to prepare meta file](#how-to-prepare-meta-file)
    * [Output](#output)
    * [Prism template](#Prism-template)
@@ -52,7 +53,7 @@ For reference, the versions used to create the python script are listed in the f
 
 ## Naming scheme for MaxQuant
 
-This script depends that the naming scheme follows the general convention:
+This script depends on on the following naming scheme:
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/naming.PNG">
 
@@ -72,6 +73,10 @@ Parameters:
 * __-con__: path to control proteinGroups.txt file, *required*
 * __--prefix__: prefix to use for naming output files
 * __--meta__: tab-delimited file listing timepoints to isotope/mix, *required*
+
+## Input 
+
+TO DO 
 
 ## How to prepare meta file
 
