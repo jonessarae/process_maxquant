@@ -49,6 +49,12 @@ The script, *process_maxquant.py*, is available in the folder *process_maxquant*
 
 For reference, the versions used to create the python script are listed in the file *versions.txt*.
 
+## Naming scheme for MaxQuant
+
+This script depends that the naming scheme follows the general convention:
+
+<img src="https://github.com/jonessarae/process_maxquant/blob/media/naming.PNG">
+
 ## Usage
 
 <pre>
