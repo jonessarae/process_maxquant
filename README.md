@@ -1,7 +1,7 @@
 # process_maxquant
 Python script for processing MaxQuant files for downstream analysis.
 
-The script is specific for triple SILAC quantitative proteomic analysis involving two mixes as shown in the diagram below.
+The script is specific for triple SILAC quantitative proteomic analysis involving two mixes with overlapping timepoints as shown in the diagram below. 
 
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/triple_silac.PNG">
