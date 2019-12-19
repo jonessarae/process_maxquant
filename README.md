@@ -17,7 +17,17 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 ## Installation
 
-You will need Python 3 already on your computer and the following packages installed:
+You will need Python 3 already on your computer.
+
+To get Python 3, you can download Anaconda at https://www.anaconda.com/distribution/.
+
+Once installed, open the Anaconda Prompt and install *git* with the following command:
+
+<pre>
+conda install -c anaconda git
+</pre>
+
+Next, install the following Python packages:
 
 * numpy
 * pandas
@@ -31,7 +41,7 @@ pip install numpy pandas natsort
 
 For reference, the versions used to create the python script are listed in the file *versions.txt*.
 
-Next, download the python script:
+Download the python script:
 
 <pre>
 git clone https://github.com/jonessarae/process_maxquant.git
