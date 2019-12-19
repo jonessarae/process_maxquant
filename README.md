@@ -39,8 +39,6 @@ These packages can be installed with the following command:
 pip install numpy pandas natsort
 </pre>
 
-For reference, the versions used to create the python script are listed in the file *versions.txt*.
-
 Download the python script:
 
 <pre>
@@ -48,6 +46,8 @@ git clone https://github.com/jonessarae/process_maxquant.git
 </pre>
 
 The script, *process_maxquant.py*, is available in the folder *process_maxquant*.
+
+For reference, the versions used to create the python script are listed in the file *versions.txt*.
 
 ## Usage
 
