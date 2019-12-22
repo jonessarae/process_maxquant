@@ -8,11 +8,11 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
 
 ## Table of contents
 
-   * [Installation](#installation)
+   * [Installation](#installation)   
+   * [Input](#Input)
    * [Naming scheme for MaxQuant](#Naming-scheme-for-MaxQuant)
+   * [How to prepare meta file](#how-to-prepare-meta-file)
    * [Usage](#usage)
-      * [Input](#Input)
-      * [How to prepare meta file](#how-to-prepare-meta-file)
    * [Output](#output)
    * [Prism template](#Prism-template)
    
@@ -51,32 +51,15 @@ The script, *process_maxquant.py*, is available in the folder *process_maxquant*
 
 For reference, the versions used to create the python script are listed in the file *versions.txt*.
 
-## Naming scheme for MaxQuant
-
-This script depends on on the following naming scheme:
-
-<img src="https://github.com/jonessarae/process_maxquant/blob/media/naming.PNG">
-
-## Usage
-
-<pre>
-python process_maxquant.py -exp path/to/file -con path/to/file --meta path/to/file [options]
-</pre> 
-
-Example:
-<pre>
-python process_maxquant.py -con Mix12_Con/proteinGroups.txt -exp Mix12_Myd/proteinGroups.txt --prefix Mix12_ConMyd --meta info.txt
-</pre> 
-
-Parameters:
-* __-exp__: path to experiment proteinGroups.txt file, *required*
-* __-con__: path to control proteinGroups.txt file, *required*
-* __--prefix__: prefix to use for naming output files
-* __--meta__: tab-delimited file listing timepoints to isotope/mix, *required*
-
 ## Input 
 
 TO DO 
+
+## Naming scheme for MaxQuant files
+
+This script depends on the following naming scheme for the intensity columns in the proteinGroups.txt:
+
+<img src="https://github.com/jonessarae/process_maxquant/blob/media/naming.PNG">
 
 ## How to prepare meta file
 
@@ -98,6 +81,25 @@ The columns are separated by a TAB.
 There must be one timepoint that is shared between the two mixes, M1 and M2. In this case, it is M1_L and M2_L.
 
 An example, *info.txt*, is provided. 
+
+## Usage
+
+<pre>
+python process_maxquant.py -exp path/to/file -con path/to/file --meta path/to/file [options]
+</pre> 
+
+Example:
+<pre>
+python process_maxquant.py -con Mix12_Con/proteinGroups.txt -exp Mix12_Myd/proteinGroups.txt --prefix Mix12_ConMyd --meta info.txt
+</pre> 
+
+Parameters:
+* __-exp__: path to experiment proteinGroups.txt file, *required*
+* __-con__: path to control proteinGroups.txt file, *required*
+* __--prefix__: prefix to use for naming output files
+* __--meta__: tab-delimited file listing timepoints to isotope/mix, *required*
+
+
 
 ## Output
 
