@@ -15,6 +15,7 @@ The script is specific for triple SILAC quantitative proteomic analysis involvin
    * [Usage](#usage)
    * [Output](#output)
    * [Prism template](#Prism-template)
+   * [Other resources](#Other-resources)
    
 
 ## Installation
@@ -53,13 +54,17 @@ For reference, the versions used to create the python script are listed in the f
 
 ## Input 
 
-TO DO 
+This script requires the MaxQuant output file, *proteinGroups.txt*, from the control and experimental groups. The *proteinGroups.txt* can contain intensity data from either one mix or two mixes. When two mixes are included, this script performs additional steps for normalizing the intensity data between the two mixes.
+
+The script also requires an additional file called the meta file that contains timepoint information and specifies the overlapping timepoint between two mixes for normalization.
 
 ## Naming scheme for MaxQuant files
 
-This script depends on the following naming scheme for the intensity columns in the proteinGroups.txt:
+This script depends on the following naming scheme for the intensity columns in the proteinGroups.txt containing either one mix or two mixes:
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/naming.PNG">
+
+This information is used to sort the columns.
 
 ## How to prepare meta file
 
@@ -100,7 +105,6 @@ Parameters:
 * __--meta__: tab-delimited file listing timepoints to isotope/mix, *required*
 
 
-
 ## Output
 
 * *raw_filtered.xlsx*: filtered, merged excel file with raw intensity values from control and experimental groups
@@ -131,4 +135,10 @@ The table generated can then be used as input for Prism.
 Example:
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/prism_table_example.PNG">
+
+### Other resources
+
+To combine *proteinGroups.txt* files of Mix 1 and Mix 2 from the same group, go to https://github.com/jonessarae/merge_maxquant for the python script. 
+
+For tutorials to run proteomic software for downstream analyses, go to https://github.com/jonessarae/proteomic_tutorials.
 
