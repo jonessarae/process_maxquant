@@ -54,7 +54,7 @@ For reference, the versions used to create the python script are listed in the f
 
 ## Input 
 
-This script requires the MaxQuant output file, *proteinGroups.txt*, from the control and experimental groups. The *proteinGroups.txt* can contain intensity data from either one mix or two mixes. When two mixes are included, this script performs additional steps for normalizing the intensity data between the two mixes.
+This script requires the MaxQuant output file, *proteinGroups.txt*, from the control and experimental groups. Ihey must contain data collected from three isotopes. The *proteinGroups.txt* can contain intensity data from either one mix or two mixes. When two mixes are included, this script performs additional steps for normalizing the intensity data between the two mixes.
 
 The script also requires an additional file called the meta file that contains timepoint information and specifies the overlapping timepoint between two mixes for normalization.
 
