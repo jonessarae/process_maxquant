@@ -10,21 +10,31 @@ import copy
 from itertools import chain
 import xlsxwriter
 from natsort import natsorted
+from collections import Counter
 
 # shut off settingwithcopy warning
 pd.options.mode.chained_assignment = None  # default='warn'
 
 """
-Purpose: Pipeline for processing files generated from MaxQuant.
+Purpose: Pipeline for processing proteinGroups.txt files generated from MaxQuant.
 
+This script is designed for processing MaxQuant output file, proteinGroups.txt, from triple SILAC mass-spec experiments.
+The proteinGroups.txt file can contain either one mix or two mixes with overlapping timepoints.
 This script assumes that the data contains three replicates for each condition in the experimental and control
-groups. It also assumes that the replicates are the same for both experimental and control
-groups.
+groups. It also assumes that for a given timepoint, the replicates for each condition are the same between the experimental and control groups.
 
 To use:
 python process_maxquant.py -exp <path/to/file> -con <path/to/file> --prefix <string> --meta <path/to/file>
 Example:
 python process_maxquant.py -con Mix12_Con_txt/proteinGroups.txt -exp Mix12_Myd_txt/proteinGroups.txt --prefix Mix12_ConMyd --meta info.txt
+
+Paramters:
+Required:
+-exp: proteinGroups.txt file for experimental group
+-con: proteinGroups.txt file for control group
+--meta: txt file with timepoint info
+Optional:
+--prefix: prefix for output file names
 
 Files that are generated:
 <prefix>_raw_filtered.xlsx: filtered, merged excel file with raw intensity values
@@ -56,11 +66,21 @@ def filter_maxquant_col(filename):
                 "Mol. weight [kDa]","Sequence length", "Q-value", "Score", "Only identified by site",
                 "Reverse", "Potential contaminant"]
 
-    # create dataframe with non-intensity columns
-    no_intensity_df = df[col_list]
+    try:
+        # create dataframe with non-intensity columns
+        no_intensity_df = df[col_list]
+    except KeyError:
+        print("\nError")
+        print("At least one of the files is not a proteinGroups.txt.")
+        print("Please check you have the right files.")
 
-    # create dataframe with intensity columns
-    intensity_df = df[df.filter(regex="Intensity H |Intensity M |Intensity L ").columns]
+    try:
+        # create dataframe with intensity columns
+        intensity_df = df[df.filter(regex="Intensity H |Intensity M |Intensity L ").columns]
+    except KeyError:
+        print("\nError")
+        print("The proteinGroups.txt file must contain three isotopes.")
+        print("Please check you have the right files.")
 
     # combine dataframes
     filtered_cols_df = pd.concat([no_intensity_df, intensity_df], axis=1)
@@ -105,18 +125,20 @@ def sort_raw_dataframe(df):
     # key for sorting columns containing Intensity by the following order:
     # stimulant, group (control vs experiment), mix, isotope, replicate
     key = [1,3,2,0,4]
-    # sort list of intensity columns
-    sorted_list = sorted(intensity_col_list, key=lambda name: tuple(re.findall(regex,name)[0][i] for i in key))
-
-    # bug checker - will exit program if the following condition is not met
-    assert len(sorted_list)%3==0,"Missing replicate for one of the conditions. Need 3 replicates per condition."
-
-    # list of columns of protein info
-    protein_list = list(df.columns[:11])
-
-    # replace old columns with new columns
-    df = df[protein_list+sorted_list]
-
+    try:
+        # sort list of intensity columns
+        sorted_list = sorted(intensity_col_list, key=lambda name: tuple(re.findall(regex,name)[0][i] for i in key))
+        # bug checker - will exit program if the following condition is not met
+        assert len(sorted_list)%3==0,"Missing replicate for one of the conditions. Need 3 replicates per condition."
+        # list of columns of protein info
+        protein_list = list(df.columns[:11])
+        # replace old columns with new columns
+        df = df[protein_list+sorted_list]
+    except IndexError as error:
+        print("\nError")
+        print("\nOne of the intensity column names does not have the following naming convention:")
+        print("Example: Intensity H LM2C_B")
+        sys.exit(0) # exit program
     return df
 
 def create_count_df(df):
@@ -235,11 +257,13 @@ def get_common_isotope(sample_dict):
 
     # check there are two keys with matching values
     if len(results) == 0:
+        print("\nError")
         print("Meta file contains an error. Check that there is a shared timepoint between mixes.")
         sys.exit(0)
 
     # check there is just one result with 2 keys representing two mixes
     if len(results[0]) !=2:
+        print("\nError")
         print("Meta file contains an error. Check that there is only one timepoint shared between mixes.")
         sys.exit(0) # exit program
 
@@ -247,6 +271,7 @@ def get_common_isotope(sample_dict):
     if list(results[0])[0].split("_")[1] == list(results[0])[1].split("_")[1]:
         isotope = list(results[0])[0].split("_")[1]
     else:
+        print("\nError")
         print("Isotopes don't match between Mix 1 and Mix 2.")
         sys.exit(0) # exit program
 
@@ -496,6 +521,22 @@ def random_impute(arr):
 
     return arr
 
+def colToExcel(col):
+    """
+    This function takes in an integer of the column index and returns the excel column letter.
+
+    Argument: col (integer)
+    Returns: excelCol (string)
+    """
+    # col is 1 based
+    excelCol = str()
+    div = col
+    while div:
+        (div, mod) = divmod(div-1, 26)
+        excelCol = chr(mod + 65) + excelCol
+
+    return excelCol
+
 def main(args):
 
     # get path to control and experiment proteinGroups.txt files
@@ -504,13 +545,15 @@ def main(args):
 
     # check for proteinGroups.txt files
     if not exp_file.endswith("proteinGroups.txt"):
+        print("\nError")
         print("Missing proteinGroups.txt file for experiment group.")
         print("Please check the path to the proteinGroups.txt file.")
         sys.exit(0) # exit program
     if not con_file.endswith("proteinGroups.txt"):
-       print("Missing proteinGroups.txt file for control group.")
-       print("Please check the path to the proteinGroups.txt file.")
-       sys.exit(0) # exit program
+        print("\nError")
+        print("Missing proteinGroups.txt file for control group.")
+        print("Please check the path to the proteinGroups.txt file.")
+        sys.exit(0) # exit program
 
     # remove unwanted columns
     con_df = filter_maxquant_col(con_file)
@@ -520,14 +563,36 @@ def main(args):
 
     # check that the right files were selected
     if con_df.columns[14].split(" ")[2].split("_")[0][3] != "C":
+        print("\nError")
         print("The wrong proteinGroups.txt file was selected for the control group.")
         print("Please check the path to the correct file.")
         sys.exit(0) # exit program
 
     if exp_df.columns[14].split(" ")[2].split("_")[0][3] == "C":
+        print("\nError")
         print("The wrong proteinGroups.txt file was selected for the experimental group.")
         print("Please check the path to the correct file.")
         sys.exit(0) # exit program
+
+    # count number of replicates per condition
+    con_rep_counter = pd.Series(x[12] for x in con_df.columns[14:]).map(Counter).sum()
+    exp_rep_counter = pd.Series(x[12] for x in exp_df.columns[14:]).map(Counter).sum()
+
+    # get number of unique timepoints per condition
+    exp_count = (sum(exp_rep_counter.values())/len(exp_rep_counter))/3
+    con_count = (sum(con_rep_counter.values())/len(con_rep_counter))/3
+
+    # check if the count is the same for each group
+    if exp_count != con_count:
+        print("\nError")
+        print("The number of timepoints don't match between experimental and control groups.")
+        sys.exit(0) # exit
+
+    # boolean if two mixes are present in proteinGroups.txt file
+    is_two_mixes = True
+    # if only 3 timepoints, then one mix is present
+    if exp_count==3 and con_count==3:
+        is_two_mixes = False
 
     # remove unwanted rows
     con_df = filter_maxquant_row(con_df)
@@ -558,13 +623,38 @@ def main(args):
     # generate count table
     merged_count_df = create_count_df(sorted_merged_df)
 
-    # save raw intensity values and counts to separate excel files
+    # save raw intensity values
     if args.prefix:
         sorted_merged_df.to_excel(args.prefix + "_raw_filtered.xlsx", index=False, na_rep="NaN")
-        merged_count_df.to_excel(args.prefix + "_counts.xlsx", index=False)
     else:
         sorted_merged_df.to_excel("raw_filtered.xlsx", index=False, na_rep="NaN")
-        merged_count_df.to_excel("counts.xlsx", index=False)
+
+    # save counts to file
+    if args.prefix:
+        workbook = pd.ExcelWriter(args.prefix + "_counts.xlsx", engine="xlsxwriter")
+    else:
+        workbook = pd.ExcelWriter("counts.xlsx", engine="xlsxwriter")
+
+    # write count table to worksheet
+    merged_count_df.to_excel(workbook, sheet_name="Counts", index=False)
+
+    # number of columns in count table to use for getting excel column letter
+    numCols = int((len(merged_count_df.columns)-5)/3)
+
+    # write info describing count table
+    line1 = "Columns {} to {} give the number of replicates with nonzero intensity values.".format(colToExcel(5), colToExcel(numCols*2+4))
+    line2 = "Columns {} to {} assigns 0 or 1 if it meets the following criteria.".format(colToExcel(numCols*2+5),colToExcel(numCols*3+4))
+    line3 = "1 is given if the number of biological replicates >= 2 and number of control replicates <= 1, else 0."
+    line4 = "Column {} gives the number of conditions/timepoints that meet the criteria.".format(colToExcel(numCols*3+5))
+
+    # save as dataframe
+    info_df = pd.DataFrame({"info":[line1,line2,line3,line4]})
+
+    # add new worksheet describing counts table
+    info_df.to_excel(workbook, sheet_name="Info", index=False)
+
+    # close and save counts excel file
+    workbook.save()
 
     # filter out rows with count_sum == 0, no stimulant/timepoint met criteria
     filtered_df = sorted_merged_df[merged_count_df["sum"] != 0].reset_index()
@@ -573,14 +663,16 @@ def main(args):
     # create dictionary from meta file containing timepoint info
     samples = create_sample_dict(args.meta)
 
-    # get isotope of timepoint shared between mixes
-    common_isotope = get_common_isotope(samples)
+    if is_two_mixes:
+        # get isotope of timepoint shared between mixes
+        common_isotope = get_common_isotope(samples)
 
     # get counts for experiment group only and which meets criteria
     exp_count_df = merged_count_df[merged_count_df["sum"] != 0].reset_index().drop("index", axis = 1)
     exp_count_df = exp_count_df[exp_count_df.columns[0:4]].join(exp_count_df[exp_count_df.filter(regex='.*[^C\d]_.*').columns])
     exp_count_df.columns = exp_count_df.columns.str.replace("M_", "_") # remove extra letter
-    exp_count_df = get_max(common_isotope, exp_count_df)
+    if is_two_mixes:
+        exp_count_df = get_max(common_isotope, exp_count_df)
     exp_count_df = rename_columns(samples, exp_count_df)
 
     # delete unused dataframes
@@ -591,13 +683,16 @@ def main(args):
     both_df = filtered_df[filtered_df.columns[:5]].join(filtered_df[filtered_df.columns[12:]]).drop("index", axis=1)
     both_df[both_df == 0] = np.nan # set 0's to NaNs
 
-    # create dataframe for normalizing replicates
-    both_factors_df = get_factors(common_isotope, both_df)
-    norm_both_df = get_norm_values(both_df, both_factors_df)
-    norm_both_df = get_max(common_isotope, norm_both_df)
-    norm_both_df = rename_columns(samples, norm_both_df)
+    # create dataframe for normalizing replicates between mixes
+    if is_two_mixes: # two mixes only
+        both_factors_df = get_factors(common_isotope, both_df)
+        norm_both_df = get_norm_values(both_df, both_factors_df)
+        norm_both_df = get_max(common_isotope, norm_both_df)
+        norm_both_df = rename_columns(samples, norm_both_df)
+    else: # one mix only
+        norm_both_df = rename_columns(samples, both_df)
 
-    # get averages of normalized replicates
+    # get averages of replicates
     norm_avg_df = get_average(norm_both_df)
 
     # save as excel files
@@ -625,7 +720,7 @@ def main(args):
     else:
         writer = pd.ExcelWriter('_exp_stats.xlsx', engine='xlsxwriter')
 
-    # write each dataframe to a different worksheet.
+    # write each dataframe to a different worksheet
     exp_norm_avg_df.to_excel(writer, sheet_name="Mean", index=False)
     exp_norm_std_df.to_excel(writer, sheet_name="Std Dev", index=False)
     exp_count_df.to_excel(writer, sheet_name="Count", index=False)
@@ -648,6 +743,8 @@ def main(args):
         norm_both_df.to_excel(args.prefix + "_all_norm_rand.xlsx", index=False)
     else:
         norm_both_df.to_excel("all_norm_rand.xlsx", index=False)
+
+    print("\nProgram ran successfully.")
 
 
 if __name__ == "__main__":
