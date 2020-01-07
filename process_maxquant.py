@@ -574,6 +574,7 @@ def main(args):
     print("Number of protein hits for control group is {}.".format(con_df.shape[0]))
 
     # check that the right file was selected for control group
+    # 14 is index for first column with Intensity value
     if con_df.columns[14].split(" ")[2].split("_")[0][3] != "C":
         print("\nError")
         print("The wrong proteinGroups.txt file was selected for the control group.")
@@ -653,6 +654,55 @@ def main(args):
 
     # create new dataframe with replicates grouped together
     sorted_merged_df = sort_raw_dataframe(merged_df, rep_num)
+
+    # loop through total number of conditions
+    for i in range(exp_stim):
+        # total replicates for each condition
+        total_rep = list(exp_rep_counter.values())[i] + list(con_rep_counter.values())[i]
+        # count and track unique replicates in control group
+        con_reps = pd.Series(x[-1] for x in sorted_merged_df.columns[int(11+i*total_rep):int(11+i*total_rep+total_rep/2)]).map(Counter).sum()
+        # loop through list of unique replicates and check if there's a number.
+        # A number is added if more than one column share the same name
+        for rep in list(con_reps.keys()):
+            if rep.isdigit():
+                print("\nError")
+                print("Duplicate replicates were found in the control group for stimulant {}.".format(list(con_rep_counter.keys())[i]))
+                sys.exit(0) # exit program
+        # get values from counter object
+        con_expected_value = next(iter(con_reps.values()))
+        # check that each value are the same, gives true or false
+        con_all_equal = all(value == con_expected_value for value in con_reps.values())
+        # if false
+        if not con_all_equal:
+            print("\nError")
+            print("There is a replicate mismatch between Mix 1 and Mix 2 in the control group for stimulant {}.".format(list(con_rep_counter.keys())[i]))
+            print("Exiting...")
+            sys.exit(0) # exit program
+        # count and track unique replicates in experimental group
+        exp_reps = pd.Series(x[-1] for x in sorted_merged_df.columns[int(11+i*total_rep+total_rep/2):int(11+i*total_rep+total_rep)]).map(Counter).sum()
+        # loop through list of unique replicates and check if there's a number.
+        # A number is added if more than one column share the same name
+        for rep in list(exp_reps.keys()):
+            if rep.isdigit():
+                print("\nError")
+                print("Duplicate replicates were found in the experimental group for stimulant {}.".format(list(exp_rep_counter.keys())[i]))
+                sys.exit(0) # exit program
+        # get values from counter object
+        exp_expected_value = next(iter(exp_reps.values()))
+        # check that each value are the same, gives true or false
+        exp_all_equal = all(value == exp_expected_value for value in exp_reps.values())
+        # if false
+        if not exp_all_equal:
+            print("\nError")
+            print("There is a replicate mismatch between Mix 1 and Mix 2 in the experimental group for stimulant {}.".format(list(exp_rep_counter.keys())[i]))
+            print("Exiting...")
+            sys.exit(0) # exit program
+        # check that replicates are the same between control and experimental group
+        if list(con_reps) != list(exp_reps):
+            print("\nError")
+            print("The replicates are not the same between experimental and control groups.")
+            print("Exiting...")
+            sys.exit(0) # exit program
 
     # generate count table
     merged_count_df = create_count_df(sorted_merged_df, rep_num)
