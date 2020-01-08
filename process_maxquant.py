@@ -673,7 +673,7 @@ def main(args):
         con_expected_value = next(iter(con_reps.values()))
         # check that each value are the same, gives true or false
         con_all_equal = all(value == con_expected_value for value in con_reps.values())
-        # if false or number of replicates is more than average replicate number
+        # if false or number of replicates is not equal to average replicate number
         if not con_all_equal or len(con_reps.keys()) != rep_num:
             print("\nError")
             print("There is a replicate mismatch between Mix 1 and Mix 2 in the control group for stimulant {}.".format(list(con_rep_counter.keys())[i]))
@@ -692,7 +692,7 @@ def main(args):
         exp_expected_value = next(iter(exp_reps.values()))
         # check that each value are the same, gives true or false
         exp_all_equal = all(value == exp_expected_value for value in exp_reps.values())
-        # if false or number of replicates is more than average replicate number
+        # if false or number of replicates is not equal to average replicate number
         if not exp_all_equal or len(exp_reps.keys()) != rep_num:
             print("\nError")
             print("There is a replicate mismatch between Mix 1 and Mix 2 in the experimental group for stimulant {}.".format(list(exp_rep_counter.keys())[i]))
