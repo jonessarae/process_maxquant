@@ -621,12 +621,13 @@ def main(args):
 
     # boolean if two mixes are present in proteinGroups.txt file
     is_two_mixes = True
-    # number of replicates per condition/timepoint
+    # number of replicates per condition/timepoint if two mixes ~ 3 isotopes X 2
     rep_num = int((sum(exp_rep_counter.values())/len(exp_rep_counter))/6)
 
     # if only 3 timepoints, then one mix is present
     if exp_count==3 and con_count==3:
         is_two_mixes = False
+        # number of replicates per condition/timepoint if one mix ~ 3 isotopes X 1
         rep_num = int((sum(exp_rep_counter.values())/len(exp_rep_counter))/3)
 
     # remove unwanted rows
@@ -668,12 +669,12 @@ def main(args):
                 print("\nError")
                 print("Duplicate replicates were found in the control group for stimulant {}.".format(list(con_rep_counter.keys())[i]))
                 sys.exit(0) # exit program
-        # get values from counter object
+        # get last value from counter object
         con_expected_value = next(iter(con_reps.values()))
         # check that each value are the same, gives true or false
         con_all_equal = all(value == con_expected_value for value in con_reps.values())
-        # if false
-        if not con_all_equal:
+        # if false or number of replicates is more than average replicate number
+        if not con_all_equal or len(con_reps.keys()) != rep_num:
             print("\nError")
             print("There is a replicate mismatch between Mix 1 and Mix 2 in the control group for stimulant {}.".format(list(con_rep_counter.keys())[i]))
             print("Exiting...")
@@ -687,12 +688,12 @@ def main(args):
                 print("\nError")
                 print("Duplicate replicates were found in the experimental group for stimulant {}.".format(list(exp_rep_counter.keys())[i]))
                 sys.exit(0) # exit program
-        # get values from counter object
+        # get last value from counter object
         exp_expected_value = next(iter(exp_reps.values()))
         # check that each value are the same, gives true or false
         exp_all_equal = all(value == exp_expected_value for value in exp_reps.values())
-        # if false
-        if not exp_all_equal:
+        # if false or number of replicates is more than average replicate number
+        if not exp_all_equal or len(exp_reps.keys()) != rep_num:
             print("\nError")
             print("There is a replicate mismatch between Mix 1 and Mix 2 in the experimental group for stimulant {}.".format(list(exp_rep_counter.keys())[i]))
             print("Exiting...")
@@ -700,7 +701,7 @@ def main(args):
         # check that replicates are the same between control and experimental group
         if list(con_reps) != list(exp_reps):
             print("\nError")
-            print("The replicates are not the same between experimental and control groups.")
+            print("The replicates are not the same between experimental and control groups for stimulant {}.".format(list(exp_rep_counter.keys())[i]))
             print("Exiting...")
             sys.exit(0) # exit program
 
