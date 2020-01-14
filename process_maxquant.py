@@ -819,7 +819,7 @@ def main(args):
     norm_both_df = norm_both_df.replace({np.nan:0}) # replace NaNs with 0's
 
     # iterate through each column and row to replace 0's with random number
-    for i in range(4,len(norm_both_df.columns[4:])):
+    for i in range(4,len(norm_both_df.columns)):
         vals = norm_both_df[norm_both_df.columns[i]].values
         new_vals = random_impute(vals)
         norm_both_df[norm_both_df.columns[i]] = new_vals
