@@ -64,7 +64,7 @@ This script depends on the following naming scheme for the intensity columns in 
 
 <img src="https://github.com/jonessarae/process_maxquant/blob/media/naming.PNG">
 
-This information is used to sort the columns.
+This information is used to sort the columns. The names must also be unique.
 
 ## How to prepare meta file
 
